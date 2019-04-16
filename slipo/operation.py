@@ -162,8 +162,7 @@ class OperationClient(object):
             path (str): The relative path for a file on the remote user file
                 system.
             profile (str): The name of the profile to use. Profile names can
-                be retrieved using `profiles <#operation.OperationClient.profiles>`__
-                method.
+                be retrieved using :meth:`profiles` method.
             **kwargs: Keyword arguments to control the transform operation. Options are:
 
                 - **featureSource** (str, optional): Specifies the data source provider of the
@@ -219,8 +218,7 @@ class OperationClient(object):
             path (str): The relative path for a file on the remote user file
                 system.
             profile (str): The name of the profile to use. Profile names can
-                be retrieved using `profiles <#operation.OperationClient.profiles>`__
-                method.
+                be retrieved using :meth:`profiles` method.
             **kwargs: Keyword arguments to control the transform operation. Options
                 are:
 
@@ -292,8 +290,7 @@ class OperationClient(object):
 
         Args:
             profile (str): The name of the profile to use. Profile names can
-                be retrieved using `profiles <#operation.OperationClient.profiles>`__
-                method.
+                be retrieved using :meth:`profiles` method.
             left (Union[str, Tuple[int, int]]): The `left` RDF dataset.
             right (Union[str, Tuple[int, int]]): The `right` RDF dataset.
 
@@ -331,8 +328,7 @@ class OperationClient(object):
 
         Args:
             profile (str): The name of the profile to use. Profile names can
-                be retrieved using `profiles <#operation.OperationClient.profiles>`__
-                method.
+                be retrieved using :meth:`profiles` method.
             left (Union[str, Tuple[int, int]]): The `left` RDF dataset.
             right (Union[str, Tuple[int, int]]): The `right` RDF dataset.
             links (Union[str, Tuple[int, int]]): The links for the `left` and `right` datasets.
@@ -370,8 +366,7 @@ class OperationClient(object):
 
         Args:
             profile (str): The name of the profile to use. Profile names can
-                be retrieved using `profiles <slipo.operation.OperationClient.profiles>`__
-                method.
+                be retrieved using :meth:`profiles` method.
             source (Union[str, Tuple[int, int]]): The RDF dataset to enrich.
 
         Returns:
