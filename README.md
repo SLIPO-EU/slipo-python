@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/SLIPO-EU/slipo-python/master/docs/_static/slipo_logo.png" />
+
 # SLIPO API Python client
 
 A simple Python client for [SLIPO API](https://github.com/SLIPO-EU).
