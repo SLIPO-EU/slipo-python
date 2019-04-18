@@ -38,12 +38,15 @@ class Client(object):
     def __init__(self,  api_key, base_url=None, requires_ssl=True):
         self.base_url = self._check_base_url(base_url, requires_ssl)
 
-        self.file_client = FileSystemClient(base_url, api_key)
-        self.catalog_client = CatalogClient(base_url, api_key)
-        self.process_client = ProcessClient(base_url, api_key)
-        self.operation_client = OperationClient(base_url, api_key)
+        self.file_client = FileSystemClient(self.base_url, api_key)
+        self.catalog_client = CatalogClient(self.base_url, api_key)
+        self.process_client = ProcessClient(self.base_url, api_key)
+        self.operation_client = OperationClient(self.base_url, api_key)
 
     def _check_base_url(self, base_url, requires_ssl):
+        if not base_url:
+            base_url = BASE_URL
+
         if not base_url.startswith("https"):
             if requires_ssl == False:
                 warnings.warn('You are using an API key over an unsecured '
@@ -82,13 +85,13 @@ class Client(object):
 
         return self.file_client.download(source, target)
 
-    def file_upload(self, source: str, target, overwrite=False):
+    def file_upload(self, source: str, target: str, overwrite: bool = False):
         """Upload a file to the remote file system.
 
         Note:
             File size constraints are enforced on the uploaded file. The default
             installation allows files up to 20 Mb. 
-            
+
             Moreover, space quotas are applied on the server. The default user
             space is 5GB.
 
@@ -106,7 +109,10 @@ class Client(object):
             SlipoException: If a network, server error or I/O error has occurred.
         """
 
-        return self.file_client.upload(source, target, overwrite=overwrite)
+        # Remove leading slash character from target
+        target = target[1::] if target.startswith('/') else target
+
+        self.file_client.upload(source, target, overwrite=overwrite)
 
     def catalog_query(self, term: str = None, pageIndex: int = 0, pageSize: int = 10):
         """Query resource catalog for RDF datasets.
@@ -399,7 +405,7 @@ class Client(object):
     def enrich(
         self,
         profile: str,
-        input: Union[str, tuple]
+        source: Union[str, tuple]
     ):
         """Enriches a RDF dataset.
 
@@ -415,4 +421,4 @@ class Client(object):
             SlipoException: If a network or server error has occurred.
         """
 
-        return self.operation_client.enrich(profile, input)
+        return self.operation_client.enrich(profile, source)
