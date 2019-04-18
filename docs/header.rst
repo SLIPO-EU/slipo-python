@@ -1,8 +1,8 @@
+.. image:: _static/slipo_logo.png
+
 ***************************************************
 Welcome to SLIPO API Python client's documentation!
 ***************************************************
-
-.. image:: _static/slipo_logo.png
 
 This document provides information on how to use the `SLIPO API`
 implemented by the `SLIPO`_ project.
