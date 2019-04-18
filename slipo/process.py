@@ -92,15 +92,12 @@ class ProcessClient(object):
         )
 
     @json_response
-    def start(self, process_id: int, process_version: int) -> dict:
+    def start(self, process_id: int, process_version: int) -> None:
         """Start or resume the execution of a workflow instance.
 
         Args:
             process_id (int): The process id.
             process_version (int): The process revision.
-
-        Returns:
-            A :obj:`dict` representing the parsed JSON response.
 
         Raises:
             SlipoException: If a network or server error has occurred.
@@ -116,15 +113,12 @@ class ProcessClient(object):
         return requests.post(url, headers=self.content_headers)
 
     @json_response
-    def stop(self, process_id: int, process_version: int) -> dict:
+    def stop(self, process_id: int, process_version: int) -> None:
         """Stop a running workflow execution instance.
 
         Args:
             process_id (int): The process id.
             process_version (int): The process revision.
-
-        Returns:
-            A :obj:`dict` representing the parsed JSON response.
 
         Raises:
             SlipoException: If a network or server error has occurred.
