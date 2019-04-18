@@ -20,7 +20,10 @@ def json_response(func):
                 text = response['errors'][0]['description'] if 'errors' in response else response['error']
                 raise SlipoException(text)
             else:
-                return response['result']
+                if 'result' in response:
+                    return response['result']
+                else:
+                    return None
         except SlipoException:
             raise
         except Exception as ex:
