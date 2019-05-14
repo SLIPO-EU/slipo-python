@@ -15,6 +15,7 @@ from .filesystem import FileSystemClient
 from .catalog import CatalogClient
 from .process import ProcessClient
 from .operation import OperationClient, EnumDataFormat
+from .types import InputType
 
 # Default API endpoint
 BASE_URL = 'https://app.dev.slipo.eu/'
@@ -72,20 +73,22 @@ class Client(object):
 
         return self.file_client.browse()
 
-    def file_download(self, source: str, target: str):
+    def file_download(self, source: str, target: str, overwrite: bool = False) -> None:
         """Download a file from the remote file system.
 
         Args:
             source (str): Relative file path on the remote file system.
             target (str): The path where to save the file.
+            overwrite (bool, optional): Set true if the operation should
+                overwrite any existing file.
 
         Raises:
             SlipoException: If a network, server error or I/O error has occurred.
         """
 
-        return self.file_client.download(source, target)
+        return self.file_client.download(source, target, overwrite=overwrite)
 
-    def file_upload(self, source: str, target: str, overwrite: bool = False):
+    def file_upload(self, source: str, target: str, overwrite: bool = False) -> None:
         """Upload a file to the remote file system.
 
         Note:
@@ -242,7 +245,6 @@ class Client(object):
     def transform_csv(
         self,
         path: str,
-        profile: str,
         **kwargs
     ):
         """Transforms a CSV file to a RDF dataset.
@@ -250,36 +252,41 @@ class Client(object):
         Args:
             path (str): The relative path for a file on the remote user file
                 system.
-            profile (str): The name of the profile to use. Profile names can
-                be retrieved using :meth:`profiles` method.
             **kwargs: Keyword arguments to control the transform operation. Options are:
 
-                - **featureSource** (str, optional): Specifies the data source provider of the
-                  input features.
-                - **encoding** (str, optional): The encoding (character set) for strings in the
-                  input data (default: `UTF-8`)
-                - **attrKey** (str, optional): Field name containing unique identifier for each
-                  entity (e.g., each record in the shapefile).
-                - **attrName** (str, optional): Field name containing name literals
-                  (i.e., strings).
                 - **attrCategory** (str, optional): Field name containing literals regarding
                   classification into categories (e.g., type of points, road classes etc.)
                   for each feature.
                 - **attrGeometry** (str, optional): Parameter that specifies the name of the
                   geometry column in the input dataset.
-                - delimiter (str, optional): Specify the character delimiting attribute
-                  values.
-                - **quote** (str, optional): Specify quote character for string values.
+                - **attrKey** (str, optional): Field name containing unique identifier for each
+                  entity (e.g., each record in the shapefile).
+                - **attrName** (str, optional): Field name containing name literals
+                  (i.e., strings).
                 - **attrX** (str, optional): Specify attribute holding X-coordinates of
-                  point locations.
+                  point locations. If inputFormat is not `CSV`, the parameter is ignored.
                 - **attrY** (str, optional): Specify attribute holding Y-coordinates of
-                  point locations.
-                - **sourceCRS** (str, optional): Specify the EPSG numeric code for the
-                  source CRS (default: `EPSG:4326`).
-                - **targetCRS** (str, optional): Specify the EPSG numeric code for the
-                  target CRS (default: `EPSG:4326`).
+                  point locations. If inputFormat is not `CSV`, the parameter is ignored.
+                - **classificationSpec** (str, optional): The relative path to a YML/CSV
+                  file describing a classification scheme.
                 - **defaultLang** (str, optional): Default lang for the labels created
                   in the output RDF (default: `en`).
+                - delimiter (str, optional): Specify the character delimiting attribute
+                  values.
+                - **encoding** (str, optional): The encoding (character set) for strings in the
+                  input data (default: `UTF-8`)
+                - **featureSource** (str, optional): Specifies the data source provider of the
+                  input features.
+                - **mappingSpec** (str, optional): The relative path to a YML file containing
+                  mappings from input schema to RDF according to a custom ontology.
+                - **profile** (str, optional): The name of the profile to use. Profile names can
+                  be retrieved using :meth:`profiles` method. If profile is not set, the
+                  `mappingSpec` parameter must be set.
+                - **quote** (str, optional): Specify quote character for string values.
+                - **sourceCRS** (str, optional): Specify the EPSG code for the
+                  source CRS (default: `EPSG:4326`).
+                - **targetCRS** (str, optional): Specify the EPSG code for the
+                  target CRS (default: `EPSG:4326`).
 
         Returns:
             A :obj:`dict` representing the parsed JSON response.
@@ -290,14 +297,12 @@ class Client(object):
 
         return self.operation_client.transform_csv(
             path,
-            profile,
             **kwargs
         )
 
     def transform_shapefile(
         self,
         path: str,
-        profile: str,
         **kwargs
     ):
         """Transforms a SHAPEFILE file to a RDF dataset.
@@ -305,30 +310,35 @@ class Client(object):
         Args:
             path (str): The relative path for a file on the remote user file
                 system.
-            profile (str): The name of the profile to use. Profile names can
-                be retrieved using :meth:`profiles` method.
             **kwargs: Keyword arguments to control the transform operation. Options
                 are:
 
-                - **featureSource** (str, optional): Specifies the data source provider of the
-                  input features.
-                - **encoding** (str, optional): The encoding (character set) for strings in the
-                  input data (default: `UTF-8`)
-                - **attrKey** (str, optional): Field name containing unique identifier for each
-                  entity (e.g., each record in the shapefile).
-                - **attrName** (str, optional): Field name containing name literals
-                  (i.e., strings).
                 - **attrCategory** (str, optional): Field name containing literals regarding
                   classification into categories (e.g., type of points, road classes etc.)
                   for each feature.
                 - **attrGeometry** (str, optional): Parameter that specifies the name of the
                   geometry column in the input dataset.
-                - **sourceCRS** (str, optional): Specify the EPSG numeric code for the
-                  source CRS (default: `EPSG:4326`).
-                - **targetCRS** (str, optional): Specify the EPSG numeric code for the
-                  target CRS (default: `EPSG:4326`).
+                - **attrKey** (str, optional): Field name containing unique identifier for each
+                  entity (e.g., each record in the shapefile).
+                - **attrName** (str, optional): Field name containing name literals
+                  (i.e., strings).
+                - **classificationSpec** (str, optional): The relative path to a YML/CSV
+                  file describing a classification scheme.
                 - **defaultLang** (str, optional): Default lang for the labels created
-                  in the output RDF (default: `en`)
+                  in the output RDF (default: `en`).
+                - **encoding** (str, optional): The encoding (character set) for strings in the
+                  input data (default: `UTF-8`)
+                - **featureSource** (str, optional): Specifies the data source provider of the
+                  input features.
+                - **mappingSpec** (str, optional): The relative path to a YML file containing
+                  mappings from input schema to RDF according to a custom ontology.
+                - **profile** (str, optional): The name of the profile to use. Profile names can
+                  be retrieved using :meth:`profiles` method. If profile is not set, the
+                  `mappingSpec` parameter must be set.
+                - **sourceCRS** (str, optional): Specify the EPSG code for the
+                  source CRS (default: `EPSG:4326`).
+                - **targetCRS** (str, optional): Specify the EPSG code for the
+                  target CRS (default: `EPSG:4326`).
 
         Returns:
             A :obj:`dict` representing the parsed JSON response.
@@ -339,28 +349,31 @@ class Client(object):
 
         return self.operation_client.transform_shapefile(
             path,
-            profile,
             **kwargs
         )
 
     def interlink(
         self,
         profile: str,
-        left: Union[str, tuple],
-        right: Union[str, tuple]
+        left: InputType,
+        right: InputType
     ):
         """Generates links for two RDF datasets.
 
-        Arguments `left`, `right` and `links` may be either a :obj:`dict` or
-        a :obj:`tuple` of two integer values. The former represents the relative
-        path to the remote user file system, while the latter the id and revision
-        of a catalog resource.
+        Arguments `left`, `right` and `links` may be either:
+
+          - A :obj:`str` that represents a relative path to the remote user file system
+          - A :obj:`tuple` of two integer values that represents the id and revision
+            of a catalog resource.
+          - A :obj:`tuple` of three integer values that represents the process id,
+            process revision and output file id for a specific workflow or SLIPO API
+            operation execution.
 
         Args:
             profile (str): The name of the profile to use. Profile names can
                 be retrieved using :meth:`profiles` method.
-            left (Union[str, Tuple[int, int]]): The `left` RDF dataset.
-            right (Union[str, Tuple[int, int]]): The `right` RDF dataset.
+            left (Union[str, Tuple[int, int], Tuple[int, int, int]): The `left` RDF dataset.
+            right (Union[str, Tuple[int, int], Tuple[int, int, int]): The `right` RDF dataset.
 
         Returns:
             A :obj:`dict` representing the parsed JSON response.
@@ -374,18 +387,18 @@ class Client(object):
     def fuse(
         self,
         profile: str,
-        left: Union[str, tuple],
-        right: Union[str, tuple],
-        links: Union[str, tuple]
+        left: InputType,
+        right: InputType,
+        links: InputType
     ):
         """Fuses two RDF datasets using Linked Data and returns a new RDF dataset.
 
         Args:
             profile (str): The name of the profile to use. Profile names can
                 be retrieved using :meth:`profiles` method.
-            left (Union[str, Tuple[int, int]]): The `left` RDF dataset.
-            right (Union[str, Tuple[int, int]]): The `right` RDF dataset.
-            links (Union[str, Tuple[int, int]]): The links for the `left` and `right` datasets.
+            left (Union[str, Tuple[int, int], Tuple[int, int, int]): The `left` RDF dataset.
+            right (Union[str, Tuple[int, int], Tuple[int, int, int]): The `right` RDF dataset.
+            links (Union[str, Tuple[int, int], Tuple[int, int, int]): The links for the `left` and `right` datasets.
 
         Returns:
             A :obj:`dict` representing the parsed JSON response.
@@ -399,14 +412,14 @@ class Client(object):
     def enrich(
         self,
         profile: str,
-        source: Union[str, tuple]
+        source: InputType
     ):
         """Enriches a RDF dataset.
 
         Args:
             profile (str): The name of the profile to use. Profile names can
                 be retrieved using :meth:`profiles` method.
-            source (Union[str, Tuple[int, int]]): The RDF dataset to enrich.
+            source (Union[str, Tuple[int, int], Tuple[int, int, int]): The RDF dataset to enrich.
 
         Returns:
             A :obj:`dict` representing the parsed JSON response.
@@ -416,3 +429,90 @@ class Client(object):
         """
 
         return self.operation_client.enrich(profile, source)
+
+    def export_csv(
+        self,
+        profile: str,
+        source: InputType,
+        **kwargs
+    ) -> dict:
+        """Exports a RDF dataset to a CSV file.
+
+        Args:
+            profile (str): The name of the profile to use. Profile names can
+                be retrieved using :meth:`profiles` method.
+            source (Union[str, Tuple[int, int], Tuple[int, int, int]): The RDF dataset
+                to export.
+            **kwargs: Keyword arguments to control the transform operation. Options are:
+
+                - **defaultLang** (str, optional): The default language for labels created
+                  in output RDF. The default is "en".
+                - delimiter (str, optional):A field delimiter for records (default: `;`).
+                - **encoding** (str, optional): The encoding (character set) for strings in the
+                  input data (default: `UTF-8`)
+                - **quote** (str, optional): Specify quote character for string values (default `"`).
+                - **sourceCRS** (str, optional): Specify the EPSG code for the
+                  source CRS (default: `EPSG:4326`).
+                - **sparqlFile** (str, optional): The relative path to a file containing a 
+                  user-specified SELECT query (in SPARQL) that will retrieve results from
+                  the input RDF triples. This query should conform with the underlying ontology
+                  of the input RDF triples.
+                - **targetCRS** (str, optional): Specify the EPSG code for the
+                  target CRS (default: `EPSG:4326`).
+
+        Returns:
+            A :obj:`dict` representing the parsed JSON response.
+
+        Raises:
+            SlipoException: If a network or server error has occurred.
+        """
+
+        return self.operation_client.export_csv(
+            profile,
+            source,
+            **kwargs
+        )
+
+    def export_shapefile(
+        self,
+        source: InputType,
+        profile: str,
+        **kwargs
+    ) -> dict:
+        """Exports a RDF dataset to a SHAPEFILE file.
+
+        Args:
+            profile (str): The name of the profile to use. Profile names can
+                be retrieved using :meth:`profiles` method.
+            source (Union[str, Tuple[int, int], Tuple[int, int, int]): The RDF dataset
+                to export.
+            **kwargs: Keyword arguments to control the transform operation. Options
+                are:
+
+                - **defaultLang** (str, optional): The default language for labels created
+                  in output RDF. The default is "en".
+                - delimiter (str, optional):A field delimiter for records (default: `;`).
+                - **encoding** (str, optional): The encoding (character set) for strings in the
+                  input data (default: `UTF-8`)
+                - **quote** (str, optional): Specify quote character for string values (default `"`).
+                - **sourceCRS** (str, optional): Specify the EPSG code for the
+                  source CRS (default: `EPSG:4326`).
+                - **sparqlFile** (str, optional): The relative path to a file containing a 
+                  user-specified SELECT query (in SPARQL) that will retrieve results from
+                  the input RDF triples. This query should conform with the underlying ontology
+                  of the input RDF triples.
+                - **targetCRS** (str, optional): Specify the EPSG code for the
+                  target CRS (default: `EPSG:4326`).
+
+        Returns:
+            A :obj:`dict` representing the parsed JSON response.
+
+        Raises:
+            SlipoException: If a network or server error has occurred.
+        """
+
+        return self.operation_client.export_shapefile(
+            profile,
+            source,
+            **kwargs
+        )
