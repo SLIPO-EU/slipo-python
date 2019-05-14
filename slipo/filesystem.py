@@ -66,16 +66,26 @@ class FileSystemClient(object):
         return requests.get(url, headers=self.headers)
 
     @file_response('target')
-    def download(self, source: str, target: str) -> None:
+    def download(self, source: str, target: str, overwrite: bool = False) -> None:
         """Download a file from the remote file system.
 
         Args:
             source (str): Relative file path on the remote file system.
             target (str): The path where to save the file.
+            overwrite (bool, optional): Set true if the operation should
+                overwrite any existing file.
 
         Raises:
             SlipoException: If a network, server error or I/O error has occurred.
         """
+
+        if os.path.isfile(target) and not overwrite:
+            raise SlipoException(
+                'File {target} already exists'.format(target=target))
+
+        if os.path.isdir(target):
+            raise SlipoException(
+                'Path {target} is a directory'.format(target=target))
 
         endpoint = API_DOWNLOAD.format(api_version=API_VERSION)
         url = urljoin(self.base_url, endpoint)
@@ -91,7 +101,7 @@ class FileSystemClient(object):
         Note:
             File size constraints are enforced on the uploaded file. The default
             installation allows files up to 20 Mb. 
-            
+
             Moreover, space quotas are applied on the server. The default user
             space is 5GB.
 
