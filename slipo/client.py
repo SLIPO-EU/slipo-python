@@ -6,8 +6,14 @@ file system, querying the catalog, querying existing workflows and executing SLI
 Toolkit operations.
 """
 import warnings
+import requests
 
 from typing import Union
+
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
 
 from .exceptions import SlipoException
 
@@ -15,10 +21,15 @@ from .filesystem import FileSystemClient
 from .catalog import CatalogClient
 from .process import ProcessClient
 from .operation import OperationClient, EnumDataFormat
+from .utils import json_response
 from .types import InputType
 
 # Default API endpoint
 BASE_URL = 'https://app.dev.slipo.eu/'
+
+API_VERSION = 'v1'
+
+API_VALIDATE = 'api/{api_version}/key/validate/'
 
 
 class Client(object):
@@ -37,6 +48,7 @@ class Client(object):
     """
 
     def __init__(self,  api_key, base_url=None, requires_ssl=True):
+        self.api_key = api_key
         self.base_url = self._check_base_url(base_url, requires_ssl)
 
         self.file_client = FileSystemClient(self.base_url, api_key)
@@ -60,6 +72,21 @@ class Client(object):
             base_url += '/'
 
         return base_url
+
+    @json_response
+    def validate(self) -> None:
+        """Validate current application key
+
+        Raises:
+            SlipoException: If a network or server error has occurred.
+        """
+
+        endpoint = API_VALIDATE.format(api_version=API_VERSION)
+        url = urljoin(self.base_url, endpoint)
+
+        return requests.get(url, headers={
+            'X-API-Key': self.api_key
+        })       
 
     def file_browse(self):
         """Browse all files and folders on the remote file system.
