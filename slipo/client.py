@@ -5,6 +5,8 @@ This class provides access to all SLIPO API functionality for accessing the user
 file system, querying the catalog, querying existing workflows and executing SLIPO 
 Toolkit operations.
 """
+
+import http
 import warnings
 import requests
 
@@ -31,6 +33,11 @@ API_VERSION = 'v1'
 
 API_VALIDATE = 'api/{api_version}/key/validate/'
 
+# HTTP Headers
+HEADER_API_KEY = 'X-API-Key'
+
+HEADER_SESSION_TOKEN = 'X-API-Session-Token'
+
 
 class Client(object):
     """Class implementing all SLIPO API functionality
@@ -49,6 +56,7 @@ class Client(object):
 
     def __init__(self,  api_key, base_url=None, requires_ssl=True):
         self.api_key = api_key
+        self.session_token = None
         self.base_url = self._check_base_url(base_url, requires_ssl)
 
         self.file_client = FileSystemClient(self.base_url, api_key)
@@ -73,7 +81,6 @@ class Client(object):
 
         return base_url
 
-    @json_response
     def validate(self) -> None:
         """Validate current application key
 
@@ -84,9 +91,22 @@ class Client(object):
         endpoint = API_VALIDATE.format(api_version=API_VERSION)
         url = urljoin(self.base_url, endpoint)
 
-        return requests.get(url, headers={
-            'X-API-Key': self.api_key
-        })       
+        try:
+            r = requests.get(url, headers={
+                HEADER_API_KEY: self.api_key
+            })
+
+            response = r.json()
+
+            if r.status_code != http.HTTPStatus.OK or not response['success']:
+                text = response['errors'][0]['description'] if 'errors' in response else response['error']
+                raise SlipoException(text)
+
+            self.session_token = r.headers[HEADER_SESSION_TOKEN]
+        except SlipoException:
+            raise
+        except Exception as ex:
+            raise SlipoException(ex)
 
     def file_browse(self):
         """Browse all files and folders on the remote file system.
