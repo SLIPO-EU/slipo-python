@@ -214,12 +214,31 @@ class Client(object):
 
         return self.process_client.query(term=term, pageIndex=pageIndex, pageSize=pageSize)
 
+    def process_save(self, process_id: int):
+        """Creates a new version for the specified workflow. The most recent version of
+        the workflow is copied.
+
+        Args:
+            process_id (int): The process id.
+
+        Returns:
+            A :obj:`dict` representing the parsed JSON response.
+
+        Raises:
+            SlipoException: If a network or server error has occurred.
+        """
+
+        return self.process_client.save(process_id)
+
     def process_start(self, process_id: int, process_version: int) -> None:
         """Start or resume execution of a workflow instance.
 
         Args:
             process_id (int): The process id.
             process_version (int): The process revision.
+
+        Returns:
+            A :obj:`dict` representing the parsed JSON response.
 
         Raises:
             SlipoException: If a network or server error has occurred.

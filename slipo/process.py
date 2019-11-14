@@ -18,6 +18,7 @@ API_VERSION = "v1"
 
 API_QUERY = '/api/{api_version}/process/'
 API_STATUS = '/api/{api_version}/process/{id}/{version}/'
+API_SAVE = '/api/{api_version}/process/{id}/save'
 API_DOWNLOAD = '/api/{api_version}/process/{id}/{version}/file/{fileId}'
 API_START = '/api/{api_version}/process/{id}/{version}/start'
 API_STOP = '/api/{api_version}/process/{id}/{version}/stop'
@@ -92,12 +93,42 @@ class ProcessClient(object):
         )
 
     @json_response
-    def start(self, process_id: int, process_version: int) -> None:
+    def save(self, process_id: int) -> None:
+        """Creates a new version for the specified workflow. The most recent version of
+        the workflow is copied.
+
+        Args:
+            process_id (int): The process id.
+
+        Returns:
+            A :obj:`dict` representing the parsed JSON response.
+
+        Raises:
+            SlipoException: If a network or server error has occurred.
+        """
+
+        endpoint = API_SAVE.format(
+            api_version=API_VERSION,
+            id=process_id,
+        )
+        url = urljoin(self.base_url, endpoint)
+
+        return requests.post(
+            url,
+            headers=self.content_headers,
+            data=json.dumps({})
+        )
+
+    @json_response
+    def start(self, process_id: int, process_version: int) -> dict:
         """Start or resume the execution of a workflow instance.
 
         Args:
             process_id (int): The process id.
             process_version (int): The process revision.
+
+        Returns:
+            A :obj:`dict` representing the parsed JSON response.
 
         Raises:
             SlipoException: If a network or server error has occurred.
